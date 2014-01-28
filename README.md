@@ -9,4 +9,4 @@ Use the port flag to change from the default 8001.
 
 example
 =======
-go-assets --port=9001 --backing=https://some-prod-site.cloudfront.net/ /home/user/assets
+static-media --port=9001 --backing=https://some-prod-site.cloudfront.net/ /home/user/assets
