@@ -12,12 +12,13 @@ import (
 )
 
 var backing = flag.String("backing", "", "Backing store to retrieve media")
+var secondary = flag.String("secondary", "", "Secondary backing store to retrieve media")
 var port = flag.Int("port", 8001, "Port to listen on")
 var servePath string
 
-func GetMedia(path, fspath string) error {
+func GetMedia(store *string, path, fspath string) error {
 	backing_url := strings.Replace(path, "/media/", "", 1)
-	resp, err := http.Get(*backing + backing_url)
+	resp, err := http.Get(*store + backing_url)
 	if err != nil {
 		return err
 	}
@@ -51,8 +52,13 @@ func AssetHandler(h http.Handler) http.Handler {
 		fspath := servePath + r.URL.Path
 		if _, err := os.Stat(fspath); err != nil {
 			if os.IsNotExist(err) {
-				if strings.HasPrefix(r.URL.Path, "/media") && *backing != "" {
-					err = GetMedia(r.URL.Path, fspath)
+				if (strings.HasPrefix(r.URL.Path, "/media") || strings.HasPrefix(r.URL.Path, "/images")) && *backing != "" {
+					fmt.Println("Trying Main Backup")
+					err = GetMedia(backing, r.URL.Path, fspath)
+					if err != nil && *secondary != "" {
+						fmt.Println("Trying Secondary Backup")
+						err = GetMedia(secondary, r.URL.Path, fspath)
+					}
 				}
 			}
 			if err != nil {
